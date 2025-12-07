@@ -8,8 +8,7 @@
 import UIKit
 
 class ViewController: UIViewController {
-    
-    var todos: [Task] = []
+    var taskManager = TaskManager()
     
     let tableView = UITableView()
     
@@ -39,7 +38,7 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupNavbar()
-        getTasks()
+        taskManager.loadTasks()
         setupTableView()
     }
     
@@ -49,34 +48,29 @@ class ViewController: UIViewController {
         navigationController?.pushViewController(vc, animated: true)
     }
     
-    func getTasks() {
-        todos = UserDefaults.standard.todos()
-    }
 }
 
 extension ViewController: UITableViewDelegate, UITableViewDataSource, AddTaskDelegate {
     func onTapSave(title: String) {
-        todos.append(Task(title: title, isCompleted: false))
-        UserDefaults.standard.saveTodos(tasks: todos)
+        taskManager.addTask(title)
         tableView.reloadData()
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return todos.count
+        return taskManager.tasks.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-                guard let cell = tableView.dequeueReusableCell(withIdentifier: "TodoCell", for: indexPath) as? TaskViewCell else {
-                    return UITableViewCell()
-                }
-        let task = todos[indexPath.row]
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: "TodoCell", for: indexPath) as? TaskViewCell else {
+            return UITableViewCell()
+        }
+        let task = taskManager.tasks[indexPath.row]
         cell.configure(with: task)
         return cell
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        todos[indexPath.row].isCompleted.toggle()
-        UserDefaults.standard.saveTodos(tasks: todos)
+        taskManager.toggleTask(at: indexPath.row)
         tableView.reloadRows(at: [indexPath], with: .automatic)
     }
 }
